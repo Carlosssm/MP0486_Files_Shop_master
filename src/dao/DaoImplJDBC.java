@@ -1,16 +1,17 @@
 package dao;
 
 import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.List;
-import model.Product;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
+import model.Amount;
 import model.Employee;
+import model.Product;
 
 public class DaoImplJDBC implements Dao {
 	Connection connection;
@@ -65,10 +66,32 @@ public class DaoImplJDBC implements Dao {
     	return employee;
 	}
 	
-	@Override
-	public List<Product> getInventory() {
-	    return null;
-	}
+@Override
+public List<Product> getInventory() {
+    List<Product> inventory = new ArrayList<>();
+    String query = "SELECT * FROM inventory";
+
+try (Statement st = connection.createStatement();
+     ResultSet rs = st.executeQuery(query)) {
+
+        while (rs.next()) {
+            Product product = new Product(
+                rs.getString("name"),
+                new Amount(rs.getDouble("wholesalePrice")),
+                rs.getBoolean("available"),
+                rs.getInt("stock")
+            );
+
+            product.setId(rs.getInt("id"));
+            inventory.add(product);
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return inventory;
+}
 
 	@Override
 	public boolean writeInventory(ArrayList<Product> inventory) {
